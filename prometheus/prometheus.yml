@@ -18,7 +18,7 @@ scrape_configs:
   # FastAPI 백엔드 메트릭
   - job_name: "fastapi"
     static_configs:
-      - targets: ["backend:8000"]
+      - targets: ["backend:8000"] # 'project-backend-1' 대신 서비스 이름 'backend' 사용
     metrics_path: "/metrics"
     scrape_interval: 10s
 
@@ -40,10 +40,20 @@ scrape_configs:
       - targets: ["rabbitmq-exporter:9419"]
     scrape_interval: 10s
 
-
   # Celery 워커 메트릭
   - job_name: "celery"
     static_configs:
-      - targets: ["celery-worker:8000"]
-    metrics_path: "/metrics"
+      - targets: ["celery-exporter:9540"] # 컨테이너 내부 포트 사용
+    scrape_interval: 10s
+
+  # Node Exporter 시스템 메트릭
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+    scrape_interval: 10s
+
+  # Nginx Exporter (실제 nginx이 없으므로 backend로 대체)
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
     scrape_interval: 10s

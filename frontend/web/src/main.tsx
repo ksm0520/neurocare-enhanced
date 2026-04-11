@@ -1,22 +1,20 @@
-import * as Sentry from "@sentry/react";
-
+// Sentry를 지연 로딩으로 변경하여 초기 로딩 성능 개선
 if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-    ],
-
-    // Performance monitoring - capture a lower rate in production to manage costs.
-    tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-
-    // Session Replay: sample rates can also be environment-dependent.
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-
-    // Set environment dynamically based on Vite's build mode.
-    environment: import.meta.env.MODE,
+  // 첫 페인트 이후에 Sentry 초기화
+  requestAnimationFrame(() => {
+    import('@sentry/react').then((Sentry) => {
+      Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        integrations: [
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration(),
+        ],
+        tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+        environment: import.meta.env.MODE,
+      });
+    });
   });
 }
 
