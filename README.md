@@ -1,18 +1,16 @@
-<h1 align="center"> 2025 Techeer Summer BootCamp - Neurocare </h1>
-<div align="center"> 
-<h3><b> Early Dementia Diagnosis Service </b></h3><br>
+<h1 align="center">Neurocare <small>(Enhanced)</small></h1>
+<div align="center">
+<h3><b>AI 기반 초기 치매 위험 진단 웹 서비스 — 개인 고도화 브랜치</b></h3><br>
 <img width="1503" src="https://raw.githubusercontent.com/ksm0520/practice/main/images/Neurocare/main.png" alt="대표 이미지">
-<h3><b>Neuro+CARE= Neurocare</b></h3>
+<h3><b>Neuro + CARE = Neurocare</b></h3>
+<p>2025 Techeer Summer Bootcamp 팀 프로젝트를 기반으로, 온보딩 성능·관측성 중심으로 개선했습니다.</p>
 <br>
 </div>
 
-<div align="center">
-
-</div>
 <br><br>
 
-
 # 📖 Table of contents
+* [개인 고도화](#personal-enhancements)
 * [Introduction](#-introduction)
 * [Demo](#-demo)
 * [API](#-api)
@@ -25,6 +23,28 @@
 * [Team Members](#-team-members)
 
 <br>
+
+<a id="personal-enhancements"></a>
+# ✨ 개인 고도화
+
+팀 서비스 코드를 바탕으로 **온보딩(초기 진입) 체감 성능**과 **실시간 관측**을 중심으로 손봤습니다.
+
+## Three.js 온보딩 렌더링 최적화
+
+온보딩에 **약 8,000개 파티클**을 쓰면서 메인 스레드 점유가 커지고, 렌더링 블로킹·**LCP(Largest Contentful Paint)** 지연이 발생하는 문제가 있었습니다.
+
+| 구분 | 내용 |
+|------|------|
+| **문제** | 대량 파티클로 인한 메인 스레드 부하, 프레임 드랍·LCP 악화 |
+| **접근** | **동적 import**로 Three.js 초기 비용 분리, 루프 내 **객체 재사용(Vector3 등)** 으로 GC·할당 부담 감소, **프레임 스킵**으로 불필요한 연산 축소 |
+| **결과(측정)** | 실행 비용 **약 488ms → 148ms(약 70% 감소)**, LCP **약 4.6s → 3.7s**, 초기 체감 속도·프레임 안정성 개선 |
+
+## 관측: Sentry · Prometheus · Grafana
+
+- **Sentry**: 프론트엔드 오류·세션 리플레이·브라우저 트레이싱. `VITE_SENTRY_DSN`이 있을 때만 동작하도록 **`main.tsx`에서 지연 로딩**해 첫 페인트 부담을 줄였습니다.
+- **Prometheus / Grafana**: API·인프라 메트릭 수집·대시보드(레포 내 `prometheus`, `grafana/provisioning` 구성).
+
+---
 
 # 📣 Introduction
 ### URL
@@ -220,7 +240,7 @@
 
 # 📊 Monitoring
 <div align="center">
-  <h3 align="left">Prometheus & Grafana & NewRelic</h3>
+  <h3 align="left">Sentry · Prometheus · Grafana (+ 기존 New Relic 등)</h3>
   <table>
         <tr>
             <th colspan="2">FastAPI</th>

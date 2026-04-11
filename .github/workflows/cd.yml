@@ -1,26 +1,41 @@
-name: CD - Deploy to Server on main branch
+# 개인 레포(neurocare-enhanced): main push 시 팀 서버 SSH 배포는 사용하지 않음.
+# 아래 블록을 해제하면 원래 팀 CD( push → SSH → docker-compose )가 다시 동작합니다.
+#
+# name: CD - Deploy to Server on main branch
+#
+# on:
+#   push:
+#     branches:
+#       - main
+#
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+#
+#       - name: Deploy to Server
+#         uses: appleboy/ssh-action@v0.1.10
+#         with:
+#           host: ${{ secrets.SSH_HOST }}
+#           username: ${{ secrets.SSH_USER }}
+#           key: ${{ secrets.SSH_KEY }}
+#           script: |
+#             cd /home/your-user/your-project-path
+#             git pull origin main
+#             docker-compose down
+#             docker-compose up -d --build
+
+name: CD (disabled — personal fork)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
+    if: false
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /home/your-user/your-project-path
-            git pull origin main
-            docker-compose down
-            docker-compose up -d --build
+      - name: Placeholder
+        run: echo "CD disabled for personal repository"
