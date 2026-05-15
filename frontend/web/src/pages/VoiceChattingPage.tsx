@@ -192,7 +192,7 @@ const VoiceChattingPage: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
