@@ -6,6 +6,7 @@ import {
   startVoiceChat,
   getVoiceChatResult,
 } from '../api';
+import { captureVoiceTaskError } from '../lib/sentry';
 import type { ChatLogResponse } from '../types/api';
 
 const POLLING_INTERVAL = 2000;
@@ -84,6 +85,12 @@ export const useVoiceChatStore = create<VoiceChatState>((set) => ({
             } else if (result.status === 'FAILURE' || result.status === 'REVOKED') {
               clearInterval(intervalId);
               const errorMsg = 'Voice processing failed on the server.';
+              captureVoiceTaskError({
+                feature: 'voice_chat',
+                reason: result.status === 'REVOKED' ? 'revoked' : 'failure',
+                routeTemplate: '/chat/task-status/{taskId}',
+                fallbackProvided: true,
+              });
               set({ isProcessing: false, error: errorMsg });
               reject(new Error(errorMsg));
             }
