@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { captureApiError, captureApiErrorFromAxios, captureStreamError } from '../lib/sentry';
 import type {
   LoginData,
   RegisterData,
@@ -35,6 +36,16 @@ axiosInstance.interceptors.request.use(
   (error) => {
     return Promise.reject(error);
   }
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error)) {
+      captureApiErrorFromAxios(error);
+    }
+    return Promise.reject(error);
+  },
 );
 
 // 회원가입 API
@@ -133,6 +144,17 @@ export const streamChat = async (chatRequest: ChatRequest, onData: (data: any) =
     body: JSON.stringify(chatRequest),
   });
 
+  if (!response.ok) {
+    captureApiError({
+      feature: 'text_chat',
+      method: 'POST',
+      routeTemplate: '/chat/stream',
+      status: response.status,
+      fallbackProvided: true,
+    });
+    throw new Error(`Stream request failed with status ${response.status}`);
+  }
+
   if (!response.body) {
     throw new Error('Response body is null');
   }
@@ -161,10 +183,19 @@ export const streamChat = async (chatRequest: ChatRequest, onData: (data: any) =
           if (dataString) {
             try {
               const json = JSON.parse(dataString);
-              console.log('Received data:', json);
+              console.debug('Received chat stream chunk');
               onData(json);
             } catch (e) {
-              console.error('Error parsing JSON:', e, 'Data:', dataString);
+              console.error('Error parsing chat stream JSON:', e);
+              captureStreamError(
+                {
+                  feature: 'text_chat',
+                  reason: 'invalid-json',
+                  routeTemplate: '/chat/stream',
+                  fallbackProvided: true,
+                },
+                e,
+              );
             }
           }
         }
