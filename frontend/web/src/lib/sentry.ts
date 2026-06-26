@@ -192,6 +192,9 @@ function getSentryClient(): Promise<SentryClient> | null {
         void import('@sentry/react').then((Sentry) => {
           Sentry.init({
             dsn: import.meta.env.VITE_SENTRY_DSN,
+            ...(import.meta.env.VITE_SENTRY_RELEASE
+              ? { release: import.meta.env.VITE_SENTRY_RELEASE }
+              : {}),
             integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
             tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
             replaysSessionSampleRate: 0.1,
