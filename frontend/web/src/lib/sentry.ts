@@ -353,7 +353,10 @@ export function initSentry(): void {
   const sentryClient = getSentryClient();
   if (!sentryClient) return;
 
-  if (import.meta.env.DEV) {
+  const allowMock =
+    import.meta.env.DEV || import.meta.env.VITE_SENTRY_ALLOW_MOCK === 'true';
+
+  if (allowMock) {
     void sentryClient.then(() =>
       import('../mocks/run-sentry-phase0-mocks').then(
         ({ getSentryMockScenario, runSentryPhase0Mock }) => {
