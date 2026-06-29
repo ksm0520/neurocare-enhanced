@@ -334,16 +334,23 @@ export function captureVoiceTaskError(ctx: VoiceTaskErrorCaptureContext, cause?:
   });
 }
 
+export function applyRenderErrorScope(
+  scope: import('@sentry/react').Scope,
+  ctx: RenderErrorCaptureContext,
+): void {
+  scope.setLevel('fatal');
+  scope.setFingerprint(['render', ctx.componentName]);
+  applyBaseScope(scope, { ...ctx, handled: false, fallbackProvided: true }, 'render');
+  scope.setContext('render', { componentName: ctx.componentName });
+}
+
 export function captureRenderError(ctx: RenderErrorCaptureContext, cause?: unknown): void {
   const message = `RenderError: ${ctx.componentName}`;
   const error = cause instanceof Error ? new Error(message, { cause }) : new Error(message);
 
   withSentryCapture((Sentry) => {
     Sentry.withScope((scope) => {
-      scope.setLevel('fatal');
-      scope.setFingerprint(['render', ctx.componentName]);
-      applyBaseScope(scope, { ...ctx, handled: ctx.handled ?? false }, 'render');
-      scope.setContext('render', { componentName: ctx.componentName });
+      applyRenderErrorScope(scope, ctx);
       Sentry.captureException(error);
     });
   });
