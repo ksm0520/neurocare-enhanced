@@ -187,35 +187,31 @@ function getSentryClient(): Promise<SentryClient> | null {
   if (!import.meta.env.VITE_SENTRY_DSN) return null;
 
   if (!sentryClientPromise) {
-    sentryClientPromise = new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        void import('@sentry/react').then((Sentry) => {
-          Sentry.init({
-            dsn: import.meta.env.VITE_SENTRY_DSN,
-            ...(import.meta.env.VITE_SENTRY_RELEASE
-              ? { release: import.meta.env.VITE_SENTRY_RELEASE }
-              : {}),
-            integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
-            tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
-            replaysSessionSampleRate: 0.1,
-            replaysOnErrorSampleRate: 1.0,
-            environment: import.meta.env.MODE,
-            ignoreErrors: IGNORED_ERRORS,
-            denyUrls: DENY_URL_PATTERNS,
-            beforeSend,
-            beforeBreadcrumb(breadcrumb) {
-              if (breadcrumb.message) {
-                breadcrumb.message = scrubValue('breadcrumb_message', breadcrumb.message) as string;
-              }
-              if (breadcrumb.data) {
-                breadcrumb.data = scrubObject(breadcrumb.data) as Record<string, unknown>;
-              }
-              return breadcrumb;
-            },
-          });
-          resolve(Sentry);
-        });
+    sentryClientPromise = import('@sentry/react').then((Sentry) => {
+      Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        ...(import.meta.env.VITE_SENTRY_RELEASE
+          ? { release: import.meta.env.VITE_SENTRY_RELEASE }
+          : {}),
+        integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+        tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+        environment: import.meta.env.MODE,
+        ignoreErrors: IGNORED_ERRORS,
+        denyUrls: DENY_URL_PATTERNS,
+        beforeSend,
+        beforeBreadcrumb(breadcrumb) {
+          if (breadcrumb.message) {
+            breadcrumb.message = scrubValue('breadcrumb_message', breadcrumb.message) as string;
+          }
+          if (breadcrumb.data) {
+            breadcrumb.data = scrubObject(breadcrumb.data) as Record<string, unknown>;
+          }
+          return breadcrumb;
+        },
       });
+      return Sentry;
     });
   }
 
@@ -356,21 +352,20 @@ export function captureRenderError(ctx: RenderErrorCaptureContext, cause?: unkno
   });
 }
 
-export function initSentry(): void {
+export async function initSentry(): Promise<void> {
   const sentryClient = getSentryClient();
   if (!sentryClient) return;
+
+  await sentryClient;
 
   const allowMock =
     import.meta.env.DEV || import.meta.env.VITE_SENTRY_ALLOW_MOCK === 'true';
 
   if (allowMock) {
-    void sentryClient.then(() =>
-      import('../mocks/run-sentry-phase0-mocks').then(
-        ({ getSentryMockScenario, runSentryPhase0Mock }) => {
-          const scenario = getSentryMockScenario();
-          if (scenario) runSentryPhase0Mock(scenario);
-        },
-      ),
+    const { getSentryMockScenario, runSentryPhase0Mock } = await import(
+      '../mocks/run-sentry-phase0-mocks'
     );
+    const scenario = getSentryMockScenario();
+    if (scenario) runSentryPhase0Mock(scenario);
   }
 }
